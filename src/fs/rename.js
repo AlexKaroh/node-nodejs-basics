@@ -1,5 +1,5 @@
 import * as fs from "node:fs/promises";
-import * as tools from "./tools.js";
+import * as tools from "../tools.js";
 
 const rename = async () => {
   const oldPath = tools.setFilePath(
