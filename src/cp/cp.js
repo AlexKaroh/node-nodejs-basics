@@ -1,6 +1,17 @@
+import * as tools from "../tools.js";
+import { spawn } from "child_process";
+
 const spawnChildProcess = async (args) => {
-    // Write your code here
+  const filePath = tools.setFilePath(import.meta.url, "files", "script.js");
+  const childProcess = spawn("node", [filePath, ...args]);
+
+  childProcess.stdout.on("data", (data) => {
+    process.stdout.write(data);
+  });
+
+  process.stdin.on("data", (data) => {
+    childProcess.stdin.write(data);
+  });
 };
 
-// Put your arguments in function call to test this functionality
-spawnChildProcess( /* [someArgument1, someArgument2, ...] */);
+spawnChildProcess(["arg1", "arg2"]);
