@@ -5,18 +5,30 @@ import { Worker } from "worker_threads";
 const performCalculations = async () => {
   const cpus = os.cpus();
   const url = tools.setFilePath(import.meta.url, "worker.js");
-  const result = [];
 
-  cpus.map((_, i) => {
-    const worker = new Worker(url);
-    worker.on("message", (res) => {
-      result.push(res);
+  const workers = Array.from(
+    { length: cpus.length },
+    (_, i) => new Worker(url, { workerData: i + 10 })
+  );
 
-      result.length === cpus.length && console.log(result);
-    });
+  try {
+    const finalResult = await Promise.allSettled(
+      workers.map((worker) => {
+        return new Promise((resolve, reject) => {
+          worker.on("message", (result) => {
+            resolve({ status: "resolved", data: result });
+          });
 
-    worker.postMessage(i + 10);
-  });
+          worker.on("error", (_) => {
+            reject({ status: "error", data: null });
+          });
+        });
+      })
+    );
+    console.log(finalResult.map(({ reason, value }) => value || reason));
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 await performCalculations();
